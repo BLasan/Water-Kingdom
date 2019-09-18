@@ -14,6 +14,64 @@ try{
   const server = require('http').Server(app);
   require('events').EventEmitter.prototype._maxListeners = 100;
   const maxSize=50;
+  let jwt = require('jsonwebtoken');
+  let middleware = require('./src/scripts/middleware');
+  const fs=require('fs');
+  var privateKEY  = fs.readFileSync(path.resolve('./src/scripts/private.key'));
+  var publicKEY  = fs.readFileSync(path.resolve('./src/scripts/public.key'));
+  
+  // const jose = require('@panva/jose');
+  // const jwk = { kty: 'EC',
+  // kid: 'dl4M_fcI7XoFCsQ22PYrQBkuxZ2pDcbDimcdFmmXM98',
+  // crv: 'P-256',
+  // x: 'v37avifcL-xgh8cy6IFzcINqqmFLc2JF20XUpn4Y2uQ',
+  // y: 'QTwy27XgP7ZMOdGOSopAHB-FU1JMQn3J9GEWGtUXreQ' }
+  // const anotherKey = jose.JWK.asKey(jwk)
+ 
+  // class HandlerGenerator {
+  //   login (req, res) {
+  //     let username = req.body[0];
+  //     let password = req.body[1];
+  //     // For the given username fetch user from DB
+  //     let mockedUsername = 'admin';
+  //     let mockedPassword = 'password';
+  
+  //     if (username && password) {
+  //       if (username === mockedUsername && password === mockedPassword) {
+  //         let token = jwt.sign({username: username},
+  //           config.secret,
+  //           { expiresIn: '24h' // expires in 24 hours
+  //           }
+  //         );
+  //         // return the JWT token for the future API calls
+  //         res.json({
+  //           success: true,
+  //           message: 'Authentication successful!',
+  //           token: token
+  //         });
+  //       } else {
+  //         res.send(403).json({
+  //           success: false,
+  //           message: 'Incorrect username or password'
+  //         });
+  //       }
+  //     } else {
+  //       res.send(400).json({
+  //         success: false,
+  //         message: 'Authentication failed! Please check the request'
+  //       });
+  //     }
+  //   }
+  //   index (req, res) {
+  //     res.json({
+  //       success: true,
+  //       message: 'Index page'
+  //     });
+  //   }
+  // }
+
+  // let handlers = new HandlerGenerator();
+  
   
   const storage=multer.diskStorage({destination:function(req,file,cb){
   
@@ -57,7 +115,7 @@ try{
   
   //upload fish details
   app.post('/fish_det',upload.any(),urlencodedParser,function(req,res,next){
-  
+    middleware.checkToken(req,res,next);
     var fish_count = function(db, callback) {
       var collection = db.collection('fish_count');
       collection.find().toArray(function(err, docs) {
@@ -74,6 +132,8 @@ try{
         callback(docs);
       });
     }
+
+    middleware.checkToken(req,res,next);
   
   if(req.files[0]==null){
    
@@ -276,7 +336,7 @@ try{
   
   //update-fish-details
   app.post('/update_fish_details',upload.any(),urlencodedParser,function(req,res,next){
-  
+    middleware.checkToken(req,res,next);
     var findDocuments = function(db, callback) {
       var collection = db.collection('fish_details');
       collection.find({code:req.body.codes}).toArray(function(err, docs) {
@@ -607,7 +667,7 @@ try{
   
   //upload user profile picture and data
   app.post('/user_info',upload_admin.single('profile_img'),urlencodedParser,function(req,res,next){
-  
+    middleware.checkToken(req,res,next);
     if(req.file==null){
     var user_name=req.body.user_name;
     var email=req.body.email;
@@ -705,29 +765,35 @@ try{
   
   
   //fetch_data
-  app.get('/fetch_details',urlencodedParser,function(req,res){
+  app.get('/fetch_details',urlencodedParser,function(req,res,next){
   
-    var findDocuments = function(db, callback) {
-      var collection = db.collection('fish_details');
-      collection.find({status:'active'}).toArray(function(err, docs) {
-        if(err) res.send('Error loading data');
-        // assert.equal(err, null);
-        callback(docs);
+    middleware.checkToken(req,res,next);
+    
+    console.log(req.decoded);
+
+    if(req.decoded){
+      var findDocuments = function(db, callback) {
+        var collection = db.collection('fish_details');
+        collection.find({status:'active'}).toArray(function(err, docs) {
+          if(err) res.send('Error loading data');
+          // assert.equal(err, null);
+          callback(docs);
+        });
+      }
+
+      mongodb.mongo.connect(mongodb.url,{ useNewUrlParser: true },function(err, db) {
+        if(err) res.send('Database loading error');
+        // assert.equal(null, err);
+        console.log("Connected correctly to server");
+        var dbo = db.db("aquakingdom");
+        findDocuments(dbo, function(docs) {
+          console.log(docs);
+          res.json(docs);
+          db.close();
+        });
       });
     }
-  
-    mongodb.mongo.connect(mongodb.url,{ useNewUrlParser: true },function(err, db) {
-      if(err) res.send('Database loading error');
-      // assert.equal(null, err);
-      console.log("Connected correctly to server");
-      var dbo = db.db("aquakingdom");
-      findDocuments(dbo, function(docs) {
-        console.log(docs);
-        res.json(docs);
-        db.close();
-      });
-    });
-   
+ 
   });
 
 
@@ -735,7 +801,8 @@ try{
 
   
   //get-deleted-details
-  app.get('/fetch_deleted_details',urlencodedParser,function(req,res){
+  app.get('/fetch_deleted_details',urlencodedParser,function(req,res,next){
+    middleware.checkToken(req,res,next);
     var findDocuments = function(db, callback) {
       var collection = db.collection('fish_details');
       collection.find({status:'deleted'}).toArray(function(err, docs) {
@@ -767,8 +834,9 @@ try{
   
   
   //delete data
-  app.get('/delete_data/:id',urlencodedParser,function(req,res){
+  app.get('/delete_data/:id',urlencodedParser,function(req,res,next){
     console.log(req.params)
+    middleware.checkToken(req,res,next);
   
     // var fish_count = function(db, callback) {
     //   var collection = db.collection('fish_count');
@@ -885,7 +953,8 @@ try{
   
   
   //load-fish-count
-  app.get('/load_fish_count',urlencodedParser,function(req,res){
+  app.get('/load_fish_count',urlencodedParser,function(req,res,next){
+    middleware.checkToken(req,res,next);
   //   var fish_count = function(db, callback) {
   //     var collection = db.collection('space_usage');
   //     collection.find().toArray(function(err, docs) {
@@ -924,7 +993,8 @@ try{
   
   
   //search_data
-  app.get('/search_data/:id',urlencodedParser,function(req,res){
+  app.get('/search_data/:id',urlencodedParser,function(req,res,next){
+    middleware.checkToken(req,res,next);
     var id=req.params.id;
   
     var findDocuments = function(db, callback) {
@@ -959,7 +1029,8 @@ try{
   
   
   //load update_fish_data
-  app.get('/to_update_data/:code',urlencodedParser,function(req,res){
+  app.get('/to_update_data/:code',urlencodedParser,function(req,res,next){
+    middleware.checkToken(req,res,next);
     var code=req.params.code;
   
     var findDocuments = function(db, callback) {
@@ -995,8 +1066,8 @@ try{
   
   
   //change_visibility_to_false
-  app.get('/visibility_change_false/:field',urlencodedParser,function(req,res){
-    
+  app.get('/visibility_change_false/:field',urlencodedParser,function(req,res,next){
+    middleware.checkToken(req,res,next);
     mongodb.mongo.connect(mongodb.url,{useNewUrlParser:true},function(err,db){
       var field=req.params.field;
       var update_key={}
@@ -1022,7 +1093,8 @@ try{
   
   
   //change_visibility_to_true
-  app.get('/visibility_change_true/:field',urlencodedParser,function(req,res){
+  app.get('/visibility_change_true/:field',urlencodedParser,function(req,res,next){
+    middleware.checkToken(req,res,next);
     mongodb.mongo.connect(mongodb.url,{useNewUrlParser:true},function(err,db){
       var field=req.params.field;
       var update_key={}
@@ -1048,7 +1120,8 @@ try{
 
 
   //get-localkoi-fish-count
-  app.get('/get_localkoi_count',urlencodedParser,function(req,res){
+  app.get('/get_localkoi_count',urlencodedParser,function(req,res,next){
+    middleware.checkToken(req,res,next);
     mongodb.mongo.connect(mongodb.url,{useNewUrlParser:true},function(err,db){
       if (err) res.send('Databse loading error');
       var dbo = db.db("aquakingdom");
@@ -1067,7 +1140,8 @@ try{
 
 
   //get-imported-koi-count
-  app.get('/get_importedkoi_count',urlencodedParser,function(req,res){
+  app.get('/get_importedkoi_count',urlencodedParser,function(req,res,next){
+    middleware.checkToken(req,res,next);
     mongodb.mongo.connect(mongodb.url,{useNewUrlParser:true},function(err,db){
       if (err) res.send('Databse loading error');
       var dbo = db.db("aquakingdom");
@@ -1092,8 +1166,8 @@ try{
   
   
   //load_visibility_updated
-  app.get('/load_visibility',urlencodedParser,function(req,res){
-  
+  app.get('/load_visibility',urlencodedParser,function(req,res,next){
+    middleware.checkToken(req,res,next);
     var findDocuments = function(db, callback) {
       var collection = db.collection('visible_of_fields');
       collection.find().toArray(function(err, docs) {
@@ -1121,7 +1195,8 @@ try{
   
   
   //load user-details
-  app.get('/user_profile_details',urlencodedParser,function(req,res){
+  app.get('/user_profile_details',urlencodedParser,function(req,res,next){
+    middleware.checkToken(req,res,next);
     var user_image_path;
     var user_space;
     var user_bio;
@@ -1161,7 +1236,11 @@ try{
   
   
   //load memory usage
-  app.get('/memory_used',urlencodedParser,function(req,res){
+  app.get('/memory_used',urlencodedParser,function(req,res,next){
+
+    // let val=middleware.checkToken(req,res,next,jwt,publicKEY);
+    // console.log(val);
+    middleware.checkToken(req,res,next);
     
     var memoryUsage= function(db, callback) {
       var collection = db.collection('space_usage');
@@ -1232,10 +1311,10 @@ try{
   
   
   //mark-availability-fish_details
-  app.get('/mark_availability_sold/:code',urlencodedParser,function(req,res){
-  
+  app.get('/mark_availability_sold/:code',urlencodedParser,function(req,res,next){
+    middleware.checkToken(req,res,next);
     var code=req.params.code;
-  
+    
     mongodb.mongo.connect(mongodb.url,{useNewUrlParser:true},function(err,db){
     
       if (err) res.send('Databse laoding error');
@@ -1341,7 +1420,24 @@ try{
     console.log('rec')
     var email=req.body[0];
     var password=req.body[1];
-    console.log(req.body[0])
+    console.log(req.body[0]);
+    let JWT_TOKEN="secret"
+    let token=jwt.sign({username:email,userpassword:password},JWT_TOKEN,{expiresIn:'1h'});
+    console.log(token+':token');
+    // let token=jose.JWT.sign(
+    //   { username: email,userpassword:password},
+    //     'nilaksha',
+    //   {
+    //     algorithm: 'HS256',
+    //     audience: 'urn:example:client_id',
+    //     expiresIn: '1 hour',
+    //     header: {
+    //       typ: 'JWT'
+    //     },
+    //     issuer: 'https://op.example.com'
+    //   }
+    // );
+
     var admin_credentials= function(db, callback) {
       var collection = db.collection('user_details');
       collection.find({email:email}).toArray(function(err, docs) {
@@ -1364,7 +1460,7 @@ try{
             console.log(res1)
             if(err) res.send('Credentials matching error');
             if(res1){
-              res.json({success:true})
+              res.json({success:true,token:token})
             }
             else{
               res.json({success:false})
@@ -1387,8 +1483,9 @@ try{
   
   
   //reset passwords
-  app.post('/password_reset',urlencodedParser,function(req,res){
-    console.log("received")
+  app.post('/password_reset',urlencodedParser,function(req,res,next){
+    console.log("received");
+    middleware.checkToken(req,res,next);
     var password=req.body.new_password;
     var admin_password= function(db, callback) {
       var collection = db.collection('user_details');

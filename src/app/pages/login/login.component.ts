@@ -49,7 +49,7 @@ export class LoginComponent implements OnInit {
       this.success=response;
 
       if(this.success.success){
-        this.login_validations.logIn();
+        this.login_validations.logIn(this.success.token);
         redirect_to_dashboard();
        // this._router.navigateByUrl('/dashboard');
       }

@@ -14,9 +14,10 @@ export class LoginValidationsService {
         return this.http.post(`${this._url}/login_credentials`,[email,password]);
     }
 
-    logIn(){
+    logIn(token){
         localStorage.setItem('loggedIn','true');
         localStorage.setItem('session','ok');
+        localStorage.setItem('token',token);
     }
 
     logOut(){

@@ -17,7 +17,7 @@ import { CustomerNavbarModule } from './shared/customer-navbar/customer-navbar.m
 import {CustomerFooterModule} from './shared/customer-footer/customer-footer.module'
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { UserIdleModule } from 'angular-user-idle';
-import {HttpClientModule} from '@angular/common/http';
+import {HttpClientModule, HttpHeaders} from '@angular/common/http';
 import { LoginComponent } from './pages/login/login.component';
 import { PageNotFoundComponent } from './pages/page-not-found/page-not-found.component';
 import { CustomerFooterComponent } from './shared/customer-footer/customer-footer.component';
