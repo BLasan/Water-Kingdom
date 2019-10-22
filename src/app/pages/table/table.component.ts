@@ -18,6 +18,9 @@ export class TableComponent implements OnInit{
     image:any;
     form: any;
     input_value:string=null;
+    isLoadedDel:boolean=false;
+    isLoadedMark:boolean=false;
+    isLoadedFilter:boolean=false;
     code:string;
     constructor(private fish_details_service:FishDetailsService,private router:Router){}
 
@@ -37,7 +40,7 @@ export class TableComponent implements OnInit{
         //console.log(id+"id");
         // alert(id)
         this.fish_details_service.deleteItemData(id).subscribe((error)=>{
-
+            this.isLoadedDel=true;
             this.item_details=this.fish_details_service.getItemData();
             //console.log(error)
         })
@@ -48,6 +51,7 @@ export class TableComponent implements OnInit{
     //   alert((<HTMLInputElement>document.getElementById('fish_id')).value)
       var fish_id=(<HTMLInputElement>document.getElementById('fish_id')).value;
       this.fish_details_service.filterData(fish_id).subscribe((data)=>{
+          this.isLoadedFilter=true;
           this.item_details=data
           this.input_value=null;
           enable_search_bar();
@@ -59,6 +63,7 @@ export class TableComponent implements OnInit{
     mark_availability(code:string){
         this.fish_details_service.mark_availability_sold(code).subscribe(()=>{
             //console.log('Done')
+            this.isLoadedMark=true;
             this.item_details=this.fish_details_service.getItemData();
             //console.log(this.item_details)
         })

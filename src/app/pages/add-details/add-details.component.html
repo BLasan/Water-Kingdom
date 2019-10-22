@@ -63,7 +63,7 @@
                                 <label for="code"><b>Code</b></label>
                                 <div class="row">
                                     <div class="col-6">
-                                        <input type="text" class="form-control" id="code" disabled formControlName="code" [value]="fish_code"
+                                        <input type="text" class="form-control" id="code" formControlName="code" [value]="fish_code"
                                         [ngClass]="{'is-invalid':form.get('code').invalid,'is-valid':form.get('code').valid}">
                                         <input style="display: none" name="code" value="{{fish_code}}">
                                         <!-- <div class='invalid-feedback'>

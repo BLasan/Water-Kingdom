@@ -17,49 +17,56 @@ export class LoginComponent implements OnInit {
 
   ngOnInit() {
 
-    if(localStorage.getItem('remember_me')){
-      (<HTMLInputElement>document.getElementById('email')).value=localStorage.getItem('remember_me');
-      (<HTMLInputElement>document.getElementById('remember_user')).checked=true;
-    }
+    try{
+      if(localStorage.getItem('remember_me')){
+        (<HTMLInputElement>document.getElementById('email')).value=localStorage.getItem('remember_me');
+        (<HTMLInputElement>document.getElementById('remember_user')).checked=true;
+      }
+  
+      if(localStorage.getItem('session')=='timeout'){
+        this.session_timeout=true;
+      }
+    }catch(e){
 
-    if(localStorage.getItem('session')=='timeout'){
-      this.session_timeout=true;
     }
-
-    //console.log(localStorage.getItem('remember_me'))
+    
   }
 
   isAdmin(){
-    let email=(<HTMLInputElement>document.getElementById('email')).value;
-    let password=(<HTMLInputElement>document.getElementById('password')).value;
-    let remeber_token=(<HTMLInputElement>document.getElementById('remember_user')).checked;
-
-    if(remeber_token){
-      this.remember_me_serivice.setRememberToken(email)
-    }
-
-    else{
-      this.remember_me_serivice.removeRememberToken();
-    }
-
-    //console.log(email)
-    
-    this.login_validations.checkCredentials(email,password).subscribe((response)=>{
-      //console.log(response)
-      this.success=response;
-
-      if(this.success.success){
-        this.login_validations.logIn();
-        redirect_to_dashboard();
-       // this._router.navigateByUrl('/dashboard');
+    let email,password,remember_token;
+    try{
+      email=(<HTMLInputElement>document.getElementById('email')).value;
+      password=(<HTMLInputElement>document.getElementById('password')).value;
+      remember_token=(<HTMLInputElement>document.getElementById('remember_user')).checked;
+  
+      if(remember_token){
+        this.remember_me_serivice.setRememberToken(email)
       }
-
+  
       else{
-        this.error_login=true;
-        (<HTMLInputElement>document.getElementById('password')).value=null;
+        this.remember_me_serivice.removeRememberToken();
       }
+  
+    }catch(e){
 
-    });
+    }finally{
+      this.login_validations.checkCredentials(email,password).subscribe((response)=>{
+        this.success=response;
+  
+        if(this.success.success){
+          this.login_validations.logIn();
+          redirect_to_dashboard();
+        }
+        else{
+          this.error_login=true;
+          (<HTMLInputElement>document.getElementById('password')).value=null;
+        }
+  
+      },(err)=>{
+        console.log(err);
+      });
+    }
+
   }
 
 

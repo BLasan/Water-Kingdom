@@ -17,30 +17,34 @@ export class UserComponent implements OnInit,ErrorHandler{
     form:any;
     error_message:any=false;
     profile_data:any;
+    isLoadedProfile:boolean=false;
     constructor(private profile_image:UserProfileService,private router:Router){}
 
     ngOnInit(){
 
         //console.log(localStorage.getItem('loggedIn'))
-        if(!localStorage.getItem('loggedIn')){
-          this.router.navigate(['home']);
-        }
-        this.form=new FormGroup({
-            user_names:new FormControl('',Validators.required),
-            emails:new FormControl('',[Validators.required,Validators.email]),
-            last_names:new FormControl('',Validators.required),
-            first_names:new FormControl('',Validators.required),
-            address1:new FormControl('',Validators.required),
-          
-          });
+        try{
+            if(!localStorage.getItem('loggedIn')){
+                this.router.navigate(['home']);
+              }
+              this.form=new FormGroup({
+                  user_names:new FormControl('',Validators.required),
+                  emails:new FormControl('',[Validators.required,Validators.email]),
+                  last_names:new FormControl('',Validators.required),
+                  first_names:new FormControl('',Validators.required),
+                  address1:new FormControl('',Validators.required),
+                
+                });
+      
+                disable_search_bar();
+              
+              this.profile_image.loadUserProfileData().subscribe((data)=>{
+                  this.isLoadedProfile=true;
+                  this.profile_data=data;
+              });
+        }catch(e){
 
-          disable_search_bar();
-        
-        this.profile_image.loadUserProfileData().subscribe((data)=>{
-            this.profile_data=data;
-            //console.log(data);
-            //console.log(this.profile_data.img_path)
-        });
+        }
     }
 
     handleError(error){

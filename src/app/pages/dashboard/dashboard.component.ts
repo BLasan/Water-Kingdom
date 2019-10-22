@@ -15,6 +15,8 @@ export class DashboardComponent implements OnInit{
   space_data:any;
   fish_count:any;
   public canvas : any;
+  isLoadedMem:boolean=false;
+  isLoadedCount:boolean=false;
   public ctx;
   public chartColor;
   public chartEmail;
@@ -29,8 +31,11 @@ export class DashboardComponent implements OnInit{
     }
 
     this.memory_usage.loadMemoryUsed().subscribe((data)=>{
+      this.isLoadedMem=true;
       this.space_data=data;
       //console.log(data)
+    },(err)=>{
+      console.log(err);
     })
   }
 
@@ -226,8 +231,11 @@ export class DashboardComponent implements OnInit{
       // });
 
       this.memory_usage.loadMemoryUsed().subscribe((data)=>{
+        this.isLoadedMem=true;
         this.space_data=data;
         //console.log(this.space_data)
+      },(err)=>{
+        console.log(err);
       });  
       
       this.getCount();
@@ -235,8 +243,11 @@ export class DashboardComponent implements OnInit{
 
     getCount(){
       this.fish_details.loadFishCount().subscribe((data)=>{
+        this.isLoadedCount=true;
         this.fish_count=data;
        // console.log(this.fish_count.count);
+      },(err)=>{
+        console.log(err);
       })
     }
 }

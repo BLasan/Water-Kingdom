@@ -12,13 +12,15 @@ declare function  disable_search_bar():any;
 export class SettingsComponent implements OnInit {
   form: any;
   visibility:any;
-
+  isLoadedVisibility:boolean=false;
+  isLoadedChangeVisibility:boolean=false;
   constructor(private fish_details_service:FishDetailsService){}
 
   ngOnInit() {
     disable_search_bar();
     visibility();
     this.fish_details_service.loadVisibility().subscribe((data)=>{
+      this.isLoadedVisibility=true;
       this.visibility=data;
       //console.log(this.visibility[0].name)
     });
@@ -33,7 +35,9 @@ export class SettingsComponent implements OnInit {
   changeView(field:string){
     this.fish_details_service.changeVisibilityFalse(field).subscribe((data)=>{
       //console.log(data)
+      this.isLoadedChangeVisibility=true;
       this.fish_details_service.loadVisibility().subscribe((data)=>{
+        this.isLoadedVisibility=true;
         this.visibility=data;
         //console.log(this.visibility[0].name)
       });
@@ -45,6 +49,7 @@ export class SettingsComponent implements OnInit {
     this.fish_details_service.changeVisibilityTrue(field).subscribe((data)=>{
       //console.log(data)
       this.fish_details_service.loadVisibility().subscribe((data)=>{
+        this.isLoadedVisibility=true;
         this.visibility=data;
         //console.log(this.visibility[0].name)
       });

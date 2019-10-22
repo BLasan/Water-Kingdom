@@ -91,7 +91,7 @@ try{
       mongodb.mongo.connect(mongodb.url,{ useNewUrlParser: true },function(err,db){
          if (err) res.send('Database loading error');
          var dbo = db.db("aquakingdom");
-         var myobj = { name:name,category:category,size:size,description:des,age:age,gender:gender,price:price,code:code,img_path:null,link:link,img_file:null,img_originalname:null,img_size:null,availability:true};
+         var myobj = { name:name,category:category,size:size,description:des,age:age,gender:gender,price:price,code:code,img_path:null,link:link,img_file:null,img_originalname:null,img_size:null,availability:true,status:'active'};
          dbo.collection("fish_details").insertOne(myobj, function(err, res) {
            if (err) res.send('Error loading documents');
            //console.log("1 document inserted");
@@ -120,6 +120,7 @@ try{
         //  });
   
        });
+       console.log(name)
         res.redirect('/add-fish-details');
        }
      
@@ -734,7 +735,7 @@ try{
       //console.log("Connected correctly to server");
       var dbo = db.db("aquakingdom");
       findDocuments(dbo, function(docs) {
-        //console.log(docs);
+        console.log(docs);
         res.json(docs);
         db.close();
       });

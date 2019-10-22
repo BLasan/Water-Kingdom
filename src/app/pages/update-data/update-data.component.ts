@@ -85,7 +85,7 @@ export class UpdateDataComponent implements OnInit {
       age:new FormControl(this.data[0].age,[checkEmpty()]),
       size:new FormControl(this.data[0].size,checkEmpty()),
       price:new FormControl(this.data[0].price,checkEmpty()),
-      code:new FormControl(this.data[0].code,checkEmpty()),
+      code:new FormControl({value:this.data[0].code,disabled:true},checkEmpty()),
       description:new FormControl(this.data[0].description,[]),
       link:new FormControl(this.data[0].link,[]),
     });
