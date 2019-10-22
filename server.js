@@ -42,7 +42,7 @@ try{
   const upload=multer({storage:storage});
   app.use(bodyparser.json());
   app.use(session({secret: 'krunal', saveUninitialized: false, resave: false}));
-  app.use(express.static('src'));
+  app.use(express.static('dist'));
   app.set('views', path.join(__dirname, '/src/app/pages/user'));
   app.engine('html',require('ejs').renderFile);
   app.use(cors())
