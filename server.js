@@ -14,7 +14,7 @@ try{
   const server = require('http').Server(app);
   require('events').EventEmitter.prototype._maxListeners = 100;
   const maxSize=50;
-  
+  app.set('port', (process.env.PORT || 4600)); 
   const storage=multer.diskStorage({destination:function(req,file,cb){
   
       // if(file.mimetype=="image/png")

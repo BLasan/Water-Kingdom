@@ -1,4 +1,5 @@
 {
+  "valid": true,
   "name": "water-kingdom",
   "version": "2.0.0",
   "license": "MIT",
@@ -46,6 +47,7 @@
     "file-system": "^2.2.2",
     "hammerjs": "^2.0.8",
     "image-to-base64": "^2.0.1",
+    "install": "^0.13.0",
     "jquery": "3.4.1",
     "material-design-icons": "^3.0.1",
     "moment": "2.24.0",
